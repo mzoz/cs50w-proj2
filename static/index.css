@@ -1,0 +1,10 @@
+html,body {
+	height: 100%;
+}
+
+#left-panel {
+	height: 100%;
+  background: #4D394B;
+	color: #ffffff;
+}
+
