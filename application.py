@@ -9,8 +9,13 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY") or os.urandom(16).__repr__()
 socketio = SocketIO(app)
 
-names = ['mzoz', 'hyy']
-channels = {'general': []}
+names = ["mzoz", "haha"]
+channels = {"general": [], "proj2": []}
+
+
+# use json or class to represent message data structure
+class Message:
+	pass
 
 
 @app.route("/")

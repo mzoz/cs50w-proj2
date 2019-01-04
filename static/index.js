@@ -4,19 +4,30 @@ document.addEventListener('DOMContentLoaded', () => {
     let socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
 
-    function showModal() {
-        $('#modal').modal({
-            backdrop: 'static',
-            keyboard: false
-        });
+    // Check name in web storage
+    if (localStorage.getItem('name')) {
+        renderPage();
+        document.querySelector('#inner-left').removeAttribute('hidden');
+        document.querySelector('#inner-right').removeAttribute('hidden');
+    } else {
+        document.querySelector('#modal').modal({backdrop: 'static', keyboard: false});
     }
 
 
-    // Check user has logged in or not
-    if (!localStorage.getItem('name')) {
-        showModal();
+    // Render page content
+    function renderPage() {
+        console.log('show page!');
+        // Render name
+        document.querySelector('#user-name').innerHTML = localStorage.getItem('name');
+
+        // Render channels
     }
 
+
+    // Update local storage for channels and messages
+    function updateStorage() {
+
+    }
 
     // Modal form submit by enter key
     $('#modal').keypress(e => {
@@ -34,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return false;
     });
 
+
     socket.on('login', data => {
         let modal = document.querySelector('#modal');
         let title = modal.querySelector('#modalLongTitle');
@@ -43,7 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
             title.innerHTML = 'Success!';
             modal.querySelector('.modal-body').remove();
             modal.querySelector('.modal-footer').remove();
-            setTimeout(() => $('#modal').modal('hide'), 2000);
+            setTimeout(() => $('#modal').modal('hide'), 1000);
+            setTimeout(showPage, 1500);
         } else {
             let message = data.message;
             title.style.color = 'red';
@@ -51,23 +64,5 @@ document.addEventListener('DOMContentLoaded', () => {
             modal.querySelector('#name').value = '';
         }
     });
-
-    // When connected, configure buttons
-    socket.on('connect', () => {
-
-        // Each button should emit a "submit vote" event
-        document.querySelectorAll('button').forEach(button => {
-            button.onclick = () => {
-                const selection = button.dataset.vote;
-                socket.emit('submit vote', {'selection': selection});
-            };
-        });
-    });
-
-    // When a new vote is announced, add to the unordered list
-    socket.on('vote totals', data => {
-        document.querySelector('#yes').innerHTML = data.yes;
-        document.querySelector('#no').innerHTML = data.no;
-        document.querySelector('#maybe').innerHTML = data.maybe;
-    });
 });
+
