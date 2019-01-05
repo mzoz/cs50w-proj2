@@ -1,7 +1,7 @@
 import os
 
 from flask import Flask, jsonify, render_template, request, session
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO, emit, join_room, leave_room
 
 app = Flask(__name__)
 
@@ -20,20 +20,39 @@ class Message:
 
 @app.route("/")
 def index():
+	# socketio.emit("channels", {"channels": channels})
 	return render_template("index.html")
 
 
-@socketio.on("create name")
+@app.route("/channels", methods=["GET"])
+def get_channels():
+	return jsonify({"channels": list(channels)})
+
+
+@socketio.on("create")
 def vote(data):
 	name = data["name"]
+	purpose = data["purpose"]
+	success = False
 	message = ""
-	if name == "":
-		message = "name can't be empty"
-		success = "no"
-	elif name in names:
-		message = "name already exists"
-		success = "no"
-	else:
-		success = "yes"
-		names.append(name)
-	socketio.emit("login", {"success": success, "message": message, "name": name})
+	if purpose == "name":
+		if name == "":
+			message = "name can't be empty"
+		elif name in names:
+			message = "name already exists"
+		else:
+			success = True
+			names.append(name)
+			emit("login", {"name": name})
+	if purpose == "channel":
+		if name == "":
+			message = "channel name can't be empty"
+		elif name in channels.keys():
+			message = "channel name already exists"
+		else:
+			success = True
+			channels[name] = []
+			emit("channel", {"name": name}, broadcast=True)
+	emit("modal", {"success": success, "message": message, "name": name})
+
+
