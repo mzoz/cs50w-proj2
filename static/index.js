@@ -2,38 +2,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Connect to websocket
     let socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
-    let purpose;
     let modal = $('#modal');
     let channels = [];
+    let names = [];
+    let messages = [];
 
+
+    // Initialize channels and names
+    let purpose;
     const request = new XMLHttpRequest();
-    request.open('GET', '/channels');
-    console.log('make request!');
+    request.open('GET', '/initialize');
     request.onload = () => {
         const data = JSON.parse(request.responseText);
         channels = data.channels;
-        console.log('channels received!');
+        names = data.names;
         renderChannels();
+        renderNames();
+        if (localStorage.getItem('channel')) {
+            highlight();
+        }
     };
+
+
     request.send();
-
-
-    // socket.on('channels', data => {
-    //     console.log('channels received!');
-    //     channels = data.channels;
-    // });
-
-
     // Initial visit
     if (!localStorage.getItem('name')) {
         purpose = 'name';
         modal.modal({backdrop: 'static', keyboard: false});
-    } else {
-        // Revisit or refresh page
+    } else { // Revisit or refresh page
         renderName();
-        if (localStorage.getItem('channel')) {
-            renderMessages();
-        }
     }
 
 
@@ -44,19 +41,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderChannels() {
         console.log('rendering channels...');
-        let channelList = document.querySelector('#channels');
-        channelList.innerHTML = '';
+        let list = document.querySelector('#channels');
+        list.innerHTML = '';
         for (let channel of channels) {
-            const ch = document.createElement('li');
-            ch.innerHTML = '# ' + channel;
-            ch.classList.add('channel');
-            channelList.append(ch);
+            const item = document.createElement('li');
+            item.setAttribute('onmouseover', '');
+            item.innerHTML = '# ' + channel;
+            item.addEventListener('click', () => {
+                console.log('channel ' + channel + ' clicked!')
+                localStorage.setItem('channel', channel);
+                highlight();
+            });
+            console.log('display ' + channel);
+            list.append(item);
+        }
+    }
+
+
+    function highlight() {
+        let list = document.querySelectorAll('#channels li');
+        let channel = localStorage.getItem('channel');
+        for (let item of list) {
+            if (item.innerHTML === '# ' + channel) {
+                item.style.backgroundColor = '#4F9689';
+                console.log('channel highlighted and emitted!');
+                socket.emit('load-messages', {'channel': channel});
+            } else {
+                item.removeAttribute('style');
+            }
+        }
+    }
+
+
+    socket.on('messages-loading', data => {
+        messages = data['messages'];
+        renderMessages();
+    });
+
+
+    function renderNames() {
+        console.log('rendering names...');
+        let list = document.querySelector('#names');
+        list.innerHTML = '';
+        for (let name of names) {
+            const item = document.createElement('li');
+            item.innerHTML = name;
+            list.append(item);
         }
     }
 
 
     function renderMessages() {
-
+        console.log('rendering messages...');
+        let list = document.querySelector('#messages');
+        list.innerHTML = '';
+        for (let message of messages) {
+            const item = document.createElement('li');
+            item.innerHTML = message['name'] + ' ' + message['time'] + '\n' + message['content'];
+            list.append(item);
+        }
     }
 
 
@@ -88,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
+
     socket.on('modal', data => {
         let title = $('#modalLongTitle');
         $('#name').val('');
@@ -104,17 +148,41 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    // Render name
+    // Display user name
     socket.on('login', data => {
         localStorage.setItem('name', data['name']);
         renderName();
     });
 
 
-    // Render channels
+    // Display updated channels
     socket.on('channel', data => {
         channels.push(data.name);
         renderChannels();
+        highlight();
+    });
+
+    // Display updated names
+    socket.on('name', data => {
+        names.push(data.name);
+        renderNames();
+    });
+
+
+    // Chat
+    $('#message-form').submit(() => {
+        let channel = localStorage.getItem(('channel'));
+        let name = localStorage.getItem('name');
+        let content = $('#message').val();
+        socket.emit('chat', {"channel": channel, "name": name, "content": content});
+    });
+
+
+    socket.on('message-broadcast', data => {
+        if (localStorage.getItem('channel') === data['channel']) {
+            messages.push(data['message']);
+            renderMessages();
+        }
     });
 });
 

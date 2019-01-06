@@ -1,5 +1,6 @@
 import os
 
+from datetime import datetime
 from flask import Flask, jsonify, render_template, request, session
 from flask_socketio import SocketIO, emit, join_room, leave_room
 
@@ -9,28 +10,37 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY") or os.urandom(16).__repr__()
 socketio = SocketIO(app)
 
-names = ["mzoz", "haha"]
 channels = {"general": [], "proj2": []}
-
-
-# use json or class to represent message data structure
-class Message:
-	pass
+names = ['mzoz', 'haha']
 
 
 @app.route("/")
 def index():
-	# socketio.emit("channels", {"channels": channels})
 	return render_template("index.html")
 
 
-@app.route("/channels", methods=["GET"])
-def get_channels():
-	return jsonify({"channels": list(channels)})
+@app.route("/initialize", methods=["GET"])
+def initialize():
+	return jsonify({"channels": list(channels), "names": names})
+
+
+@socketio.on("chat")
+def chat(data):
+	channel = data["channel"]
+	message = {"name": data["name"], "time": datetime.now().isoformat(' ', 'seconds'), "content": data["content"]}
+	channels[channel].append(message)
+	emit("message-broadcast", {"channel": channel, "message": message}, broadcast=True)
+
+
+@socketio.on("load-messages")
+def load_messages(data):
+	channel = data["channel"]
+	messages = channels[channel]
+	emit("messages-loading", {"messages": messages})
 
 
 @socketio.on("create")
-def vote(data):
+def create(data):
 	name = data["name"]
 	purpose = data["purpose"]
 	success = False
@@ -44,6 +54,7 @@ def vote(data):
 			success = True
 			names.append(name)
 			emit("login", {"name": name})
+			emit("name", {"name": name}, broadcast=True)
 	if purpose == "channel":
 		if name == "":
 			message = "channel name can't be empty"

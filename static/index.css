@@ -23,8 +23,16 @@ html,body {
 
 ul {
 	list-style-type: none;
+	padding-left: 0;
 }
 
-.channel {
+.channelClickable {
+	cursor: pointer;
 
 }
+
+/* right panel */
+#message-form {padding-bottom: 20px; position: fixed; bottom: 0; width: 100%; }
+#message-form input { border: solid 2px #4D394B; padding: 10px; width: 65%; }
+#message-form button {width: 10%; color: #ffffff; background-color: #4D394B;
+	border: solid 2px #4D394B; padding: 10px;}
