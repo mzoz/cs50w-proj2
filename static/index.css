@@ -32,7 +32,25 @@ ul {
 }
 
 /* right panel */
-#message-form {padding-bottom: 20px; position: fixed; bottom: 0; width: 100%; }
-#message-form input { border: solid 2px #4D394B; padding: 10px; width: 65%; }
+#messages {
+	display: block;
+	overflow: auto;
+	max-height: 90vh;
+}
+
+
+#message-form {padding-bottom: 20px; position: fixed; bottom: 0; width: 77%; }
+#message-form input { border: solid 2px #4D394B; padding: 10px; width: 90%; }
 #message-form button {width: 10%; color: #ffffff; background-color: #4D394B;
 	border: solid 2px #4D394B; padding: 10px;}
+
+
+#messages span {
+	color: #D3D3D3;
+	font-weight: lighter;
+}
+
+#messages p {
+	padding-top: 0;
+}
+

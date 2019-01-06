@@ -96,11 +96,19 @@ document.addEventListener('DOMContentLoaded', () => {
         let list = document.querySelector('#messages');
         list.innerHTML = '';
         for (let message of messages) {
-            const item = document.createElement('li');
-            item.innerHTML = message['name'] + ' ' + message['time'] + '\n' + message['content'];
-            list.append(item);
+            const name = document.createElement('p');
+            name.innerHTML = '<strong>' + message['name'] + '</strong>' + ' '
+                            + '<span>' + message['time'] + '</span>';
+            const content = document.createElement('p');
+            content.innerHTML = message['content'];
+            list.append(name, content);
         }
+        window.scrollTo(0, document.body.scrollHeight);
+        list.scrollTop = list.scrollHeight;
     }
+
+
+
 
 
     // Add new channel
