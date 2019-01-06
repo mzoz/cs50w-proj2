@@ -10,8 +10,8 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY") or os.urandom(16).__repr__()
 socketio = SocketIO(app)
 
-channels = {"general": [], "proj2": []}
-names = ['mzoz', 'haha']
+channels = {}
+names = []
 
 
 @app.route("/")
