@@ -1,8 +1,8 @@
 import os
 
 from datetime import datetime
-from flask import Flask, jsonify, render_template, request, session
-from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask import Flask, jsonify, render_template
+from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
 
